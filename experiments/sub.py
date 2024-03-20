@@ -2,8 +2,8 @@ from pro_dj_link import ProDjLink
 import time
 import subprocess
 
-interface_ip = "192.168.112.235"  # yukikaM3 IP address
-interface_mac_address = "80:a9:97:09:38:a8"
+interface_ip = "192.168.112.213"  # yukikaM3 IP address
+interface_mac_address = "3c:18:a0:99:7b:20"
 this_device_name = "yukikaM3"
 
 link = ProDjLink(interface_ip, interface_mac_address, this_device_name)
@@ -14,7 +14,7 @@ link.connect()
 dumbCounter = -3
 
 # Start listenUdp.py
-subprocess.Popen(["python3", "listenUdp.py"])
+subprocess.Popen(["node", "../udpRelay/udpRelay.js"])
 
 # Send keep alive every 2 seconds
 while True:
