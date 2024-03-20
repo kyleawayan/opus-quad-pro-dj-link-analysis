@@ -5,10 +5,12 @@ pro_dj_link_begin_bytes = [0x51, 0x73, 0x70, 0x74, 0x31, 0x57, 0x6D, 0x4A, 0x4F,
 
 
 class ProDjLink:
-    def __init__(self, interface_ip, interface_mac_address):
+    def __init__(self, interface_ip, interface_mac_address, this_device_name):
         self.interface_ip = interface_ip
         self.interface_mac_address = interface_mac_address
         self.broadcast_ip = self.get_broadcast_ip()
+        self.this_device_name = this_device_name
+        self.opus_ip = None
 
     def get_broadcast_ip(self):
         interface_elements = self.interface_ip.split(".")
@@ -23,6 +25,11 @@ class ProDjLink:
         s.bind((self.interface_ip, port))
         s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
         s.sendto(bytearray(packet_bytes), (self.broadcast_ip, port))
+        s.close()
+
+    def send_packet(self, packet_bytes, ip, port):
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.sendto(bytearray(packet_bytes), (ip, port))
         s.close()
 
     def connect(self):
@@ -45,6 +52,18 @@ class ProDjLink:
         device_name_bytes = device_name.encode("utf-8")
         device_name_bytes += b"\x00" * (20 - len(device_name_bytes))
         return list(device_name_bytes)
+
+    @staticmethod
+    def encode_weird_string(input_str):
+        input_bytes = input_str.encode("utf-8")
+        spaced_bytes = bytearray()
+
+        for byte in input_bytes:
+            spaced_bytes.append(byte)
+            spaced_bytes.append(0x00)
+
+        spaced_bytes += b"\x00" * (255 - len(spaced_bytes))
+        return list(spaced_bytes)
 
     @staticmethod
     def encode_mac_address(mac_address):
@@ -86,6 +105,21 @@ class ProDjLink:
         packet += [0x04, 0x01]
 
         self.broadcast_packet(packet, 50000)
+
+    def send_cdj(self):
+        # If self.opus_ip is None, throw error
+        if self.opus_ip is None:
+            raise ValueError("Opus IP is not set")
+
+        packet = pro_dj_link_begin_bytes + [0x11] + self.encode_device_name("rekordbox")
+
+        # idk
+        packet += [0x01, 0x01, 0x11, 0x01, 0x04, 0x11, 0x01, 0x00, 0x00, 0x00]
+
+        # weird string
+        packet += self.encode_weird_string(self.this_device_name)
+
+        self.send_packet(packet, self.opus_ip, 50002)
 
     def send_keep_alive(self):
         packet = (

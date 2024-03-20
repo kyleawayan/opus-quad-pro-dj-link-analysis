@@ -14,9 +14,9 @@ def listen_udp(interface, port):
         # Receive data from the socket
         data, addr = sock.recvfrom(1024)
 
-        # Print the received data
-        print(f"Received data from {addr}: {data.decode()}")
+        # Print the received data as a hexadecimal string
+        print(f"Received data from {addr}: {data.hex()}")
 
 
 # Usage example
-listen_udp("192.168.112.213", 50002)
+listen_udp("192.168.112.235", 50002)
