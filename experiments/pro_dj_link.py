@@ -128,11 +128,11 @@ class ProDjLink:
             + self.encode_device_name("rekordbox")
         )
         packet += [0x01, 0x03, 0x00, 0x36]
-        packet += [0x11]
+        packet += [0x17]
         packet += [0x01]
         packet += self.encode_mac_address(self.interface_mac_address)
         packet += self.encode_ip_address(self.interface_ip)
-        packet += [0x01, 0x01, 0x00, 0x00, 0x04, 0x08]
+        packet += [0x04, 0x01, 0x00, 0x00, 0x04, 0x08]
         self.broadcast_packet(packet, 50000)
 
     def send_idk_every_10ms(self):
@@ -173,8 +173,8 @@ class ProDjLink:
             0x00,
             0x80,
             0x00,
-            0x20,
-            0xD0,
+            0x56,
+            0xC0,
             0x00,
             0x10,
             0x00,
@@ -233,56 +233,12 @@ class ProDjLink:
         for i in range(10):
             self.send_packet(packetOne, self.opus_ip, 50002)
 
-        packetTwo = PRO_DJ_LINK_BEGIN_BYTES + [
-            0x55,
-            0x72,
-            0x65,
-            0x6B,
-            0x6F,
-            0x72,
-            0x64,
-            0x62,
-            0x6F,
-            0x78,
-            0x00,
-            0x00,
-            0x00,
-            0x00,
-            0x00,
-            0x00,
-            0x00,
-            0x00,
-            0x00,
-            0x00,
-            0x00,
-            0x01,
-            0x00,
-            0x17,
-            0x00,
-            0x08,
-            0x28,
-            0x02,
-            0x00,
-            0x00,
-            0x0A,
-            0x09,
-            0x03,
-            0x01,
-        ]
-
-        # Send this twice to the opus, with a 5 second delay
-        time.sleep(5)
-        self.send_packet(packetTwo, self.opus_ip, 50002)
-        time.sleep(5)
-        self.send_packet(packetTwo, self.opus_ip, 50002)
-
     def request_song_metadata(self, trackId, deckNo):
         packet = PRO_DJ_LINK_BEGIN_BYTES + [0x55] + self.encode_device_name("rekordbox")
         packet += [0x01, 0x00, 0x17, 0x00, 0x08]
 
         # Encode trackId in Int32 big endian
         trackIdBytes = trackId.to_bytes(4, byteorder="little")
-        print(list(trackIdBytes))
         packet += list(trackIdBytes)
 
         packet += [0xA]
