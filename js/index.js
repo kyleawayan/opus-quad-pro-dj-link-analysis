@@ -25,6 +25,9 @@ udpSocket.on("message", (message, rinfo) => {
 
   if (packetType == 10) {
     // CDJ Status Packet
+
+    // Relay to all connected WebSocket clients
+    websocketServer.broadcastBinary(message);
   }
 });
 
