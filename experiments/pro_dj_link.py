@@ -1,6 +1,7 @@
 import socket
+import time
 
-pro_dj_link_begin_bytes = [0x51, 0x73, 0x70, 0x74, 0x31, 0x57, 0x6D, 0x4A, 0x4F, 0x4C]
+PRO_DJ_LINK_BEGIN_BYTES = [0x51, 0x73, 0x70, 0x74, 0x31, 0x57, 0x6D, 0x4A, 0x4F, 0x4C]
 
 
 class ProDjLink:
@@ -31,6 +32,21 @@ class ProDjLink:
         s.sendto(bytearray(packet_bytes), (ip, port))
         s.close()
 
+    def connect(self):
+        # Send first-stage channel number claim 3 times
+        for i in range(3):
+            self.send_first_stage(i + 1)
+            time.sleep(0.03)
+
+        # Send second-stage channel number claim
+        # d we need to send
+        d_needed = [0x11, 0x12, 0x29, 0x2A, 0x2B, 0x2C]
+
+        for i in range(6):
+            for d in d_needed:
+                self.send_second_stage(d, i + 1)
+                time.sleep(0.03)
+
     @staticmethod
     def encode_device_name(device_name):
         device_name_bytes = device_name.encode("utf-8")
@@ -57,15 +73,48 @@ class ProDjLink:
     def encode_ip_address(ip_address):
         return list(map(int, ip_address.split(".")))
 
+    def send_first_stage(self, n):
+        packet = (
+            PRO_DJ_LINK_BEGIN_BYTES
+            + [0x00, 0x00]
+            + self.encode_device_name("rekordbox")
+        )
+        packet += [0x01, 0x03, 0x00, 0x2C]
+        packet += [n]
+        packet += [0x01]
+        packet += self.encode_mac_address(self.interface_mac_address)
+        self.broadcast_packet(packet, 50000)
+
+    def send_second_stage(self, d, n):
+        packet = (
+            PRO_DJ_LINK_BEGIN_BYTES
+            + [0x02, 0x00]
+            + self.encode_device_name("rekordbox")
+        )
+        # other stuff + Length of bit idk
+        packet += [0x01, 0x03, 0x00, 0x32]
+        # ip address
+        packet += self.encode_ip_address(self.interface_ip)
+        # mac address
+        packet += self.encode_mac_address(self.interface_mac_address)
+        # d
+        packet += [d]
+        # n
+        packet += [n]
+        # idk
+        packet += [0x04, 0x01]
+
+        self.broadcast_packet(packet, 50000)
+
     def send_cdj(self):
         # If self.opus_ip is None, throw error
         if self.opus_ip is None:
             raise ValueError("Opus IP is not set")
 
-        packet = pro_dj_link_begin_bytes + [0x11] + self.encode_device_name("rekordbox")
+        packet = PRO_DJ_LINK_BEGIN_BYTES + [0x11] + self.encode_device_name("rekordbox")
 
         # idk
-        packet += [0x01, 0x01, 0x11, 0x01, 0x04, 0x11, 0x01, 0x00, 0x00, 0x00]
+        packet += [0x01, 0x01, 0x17, 0x01, 0x04, 0x17, 0x01, 0x00, 0x00, 0x00]
 
         # weird string
         packet += self.encode_weird_string(self.this_device_name)
@@ -74,7 +123,7 @@ class ProDjLink:
 
     def send_keep_alive(self):
         packet = (
-            pro_dj_link_begin_bytes
+            PRO_DJ_LINK_BEGIN_BYTES
             + [0x06, 0x00]
             + self.encode_device_name("rekordbox")
         )
@@ -85,3 +134,144 @@ class ProDjLink:
         packet += self.encode_ip_address(self.interface_ip)
         packet += [0x01, 0x01, 0x00, 0x00, 0x04, 0x08]
         self.broadcast_packet(packet, 50000)
+
+    def send_idk_every_10ms(self):
+        packet = PRO_DJ_LINK_BEGIN_BYTES + [
+            0x29,
+            0x72,
+            0x65,
+            0x6B,
+            0x6F,
+            0x72,
+            0x64,
+            0x62,
+            0x6F,
+            0x78,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x01,
+            0x01,
+            0x17,
+            0x00,
+            0x38,
+            0x17,
+            0x00,
+            0x00,
+            0xC0,
+            0x00,
+            0x10,
+            0x00,
+            0x00,
+            0x80,
+            0x00,
+            0x20,
+            0xD0,
+            0x00,
+            0x10,
+            0x00,
+            0x00,
+            0x00,
+            0x09,
+            0xFF,
+            0x00,
+        ]
+
+        self.broadcast_packet(packet, 50002)
+
+    def send_pro_dj_link_idk_packet(self):
+        packetOne = PRO_DJ_LINK_BEGIN_BYTES + [
+            0x16,
+            0x72,
+            0x65,
+            0x6B,
+            0x6F,
+            0x72,
+            0x64,
+            0x62,
+            0x6F,
+            0x78,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x01,
+            0x01,
+            0x17,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+        ]
+
+        # Send this 10 times to opus
+        for i in range(10):
+            self.send_packet(packetOne, self.opus_ip, 50002)
+
+        packetTwo = PRO_DJ_LINK_BEGIN_BYTES + [
+            0x55,
+            0x72,
+            0x65,
+            0x6B,
+            0x6F,
+            0x72,
+            0x64,
+            0x62,
+            0x6F,
+            0x78,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x01,
+            0x00,
+            0x17,
+            0x00,
+            0x08,
+            0x28,
+            0x02,
+            0x00,
+            0x00,
+            0x0A,
+            0x09,
+            0x03,
+            0x01,
+        ]
+
+        # Send this twice to the opus, with a 5 second delay
+        time.sleep(5)
+        self.send_packet(packetTwo, self.opus_ip, 50002)
+        time.sleep(5)
+        self.send_packet(packetTwo, self.opus_ip, 50002)
