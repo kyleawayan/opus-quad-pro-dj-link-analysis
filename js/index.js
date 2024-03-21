@@ -20,6 +20,12 @@ udpSocket.on("message", (message, rinfo) => {
     console.log("Opus IP set:", firstAddressRequest);
     proDjLink.sendCdj();
   }
+
+  const packetType = ProDjLink.getProDjLinkPacketType(message);
+
+  if (packetType == 10) {
+    // CDJ Status Packet
+  }
 });
 
 // Start listening on UDP port 50002

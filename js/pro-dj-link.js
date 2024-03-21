@@ -96,6 +96,10 @@ class ProDjLink {
     return ipAddress;
   }
 
+  static getProDjLinkPacketType(packet) {
+    return packet[10];
+  }
+
   sendCdj() {
     if (this.opusIp === null) {
       throw new Error("Opus IP is not set");
