@@ -13,36 +13,43 @@ class ProDjLink {
     this.broadcastIp = ip.subnet(interfaceIp, "255.255.255.0").broadcastAddress;
     this.thisDeviceName = thisDeviceName;
     this.opusIp = null;
+    this.bpmMixerBytes = Buffer.from([0x00, 0x00]);
+
+    this.announceUdpSocket = dgram.createSocket("udp4");
+    this.statusesUdpSocket = dgram.createSocket("udp4");
+  }
+
+  chooseUdpSocket(port) {
+    if (port === 50000) {
+      return this.announceUdpSocket;
+    } else if (port === 50002) {
+      return this.statusesUdpSocket;
+    } else {
+      throw new Error("Invalid port");
+    }
   }
 
   broadcastPacket(packetBytes, port) {
-    const client = dgram.createSocket("udp4");
+    const client = this.chooseUdpSocket(port);
+    client.setBroadcast(true);
 
-    client.bind(port, this.interfaceIp, (err) => {
-      if (err) throw err;
-
-      client.setBroadcast(true);
-
-      client.send(
-        packetBytes,
-        0,
-        packetBytes.length,
-        port,
-        this.broadcastIp,
-        (err) => {
-          if (err) throw err;
-          client.close();
-        }
-      );
-    });
+    client.send(
+      packetBytes,
+      0,
+      packetBytes.length,
+      port,
+      this.broadcastIp,
+      (err) => {
+        if (err) throw err;
+      }
+    );
   }
 
   sendPacket(packetBytes, ip, port) {
-    const client = dgram.createSocket("udp4");
+    const client = this.chooseUdpSocket(port);
 
     client.send(packetBytes, 0, packetBytes.length, port, ip, (err) => {
       if (err) throw err;
-      client.close();
     });
   }
 
@@ -76,6 +83,39 @@ class ProDjLink {
     return packet[10];
   }
 
+  static calcPitch(pitch) {
+    let value = (pitch[0] << 16) | (pitch[1] << 8) | pitch[2];
+    const relativeZero = 0x100000;
+    const computed = ((value - relativeZero) / relativeZero) * 100;
+
+    return parseFloat(computed.toFixed(2));
+  }
+
+  static encodeBpm(bpm) {
+    const rawBPM = bpm === null ? 0xffff : Math.round(bpm * 100);
+    const buffer = Buffer.alloc(2); // creates a buffer of length 2 bytes
+    buffer.writeUInt16BE(rawBPM, 0); // Write rawBPM in Big Endian format
+    return buffer;
+  }
+
+  scanForNeededBytesForMixerStatus(packet) {
+    const isMaster = (packet[0x89] & 32) !== 0;
+
+    if (!isMaster) {
+      return;
+    }
+
+    const rawBPM = (packet[0x92] << 8) | packet[0x93];
+    const sliderPitchBuffer = packet.slice(0x8d, 0x90);
+    const trackBPM = rawBPM === 65535 ? null : rawBPM / 100;
+    const sliderPitch = ProDjLink.calcPitch(sliderPitchBuffer);
+    const foundBpmUnrounded = trackBPM * (1 + sliderPitch / 100);
+
+    const foundBpm = Math.floor(foundBpmUnrounded * 100) / 100; // Round down to 2 decimal places
+
+    this.bpmMixerBytes = ProDjLink.encodeBpm(foundBpm);
+  }
+
   sendCdj() {
     if (this.opusIp === null) {
       throw new Error("Opus IP is not set");
@@ -104,6 +144,21 @@ class ProDjLink {
     ]);
 
     this.broadcastPacket(packet, 50000);
+  }
+
+  sendRekordboxMixerStatusPacket() {
+    let packet = Buffer.concat([
+      Buffer.from(proDjLinkBeginBytes),
+      Buffer.from([
+        0x29, 0x72, 0x65, 0x6b, 0x6f, 0x72, 0x64, 0x62, 0x6f, 0x78, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x01, 0x17,
+        0x00, 0x38, 0x17, 0x00, 0x00, 0xc0, 0x00, 0x10, 0x00, 0x00, 0x80, 0x00,
+      ]),
+      this.bpmMixerBytes,
+      Buffer.from([0x00, 0x10, 0x00, 0x00, 0x00, 0x09, 0xff, 0x00]),
+    ]);
+
+    this.broadcastPacket(packet, 50002);
   }
 }
 
