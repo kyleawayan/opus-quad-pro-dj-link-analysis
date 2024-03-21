@@ -65,3 +65,19 @@ Same 02 at 0x32, so this may be image?
 **Byte 0x31 incremented by 1**, so it may be a continuation of the previous image?
 
 Have not tested concatenating the two packets to see if it makes a complete image.
+
+#### Request Metadata
+
+This packet is sent whenever a new track is loaded, regardless whether it has phrase data or not:
+
+```
+0000  51 73 70 74 31 57 6d 4a  4f 4c 55 72 65 6b 6f 72   Qspt1WmJ OLUrekor
+0010  64 62 6f 78 00 00 00 00  00 00 00 00 00 00 00 01   dbox···· ········
+0020  00 17 00 08 b8 00 00 00  0a 09 03 01               ········ ····
+```
+
+Right after this packet is sent on port 50002 to the opus, the opus responds back with packets filled with binary data (including the above image one). And also PSSI.
+
+Bytes 0x2b represents the deck number. On opus quad, 9 is deck 1, 10 is deck 2, 11 is deck 3, 12 is deck 4.
+
+Byte 0x24 through 0x27 represent the track ID. It is an unsigned 32-bit integer with little endian.

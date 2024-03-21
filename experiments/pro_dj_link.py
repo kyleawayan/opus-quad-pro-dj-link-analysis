@@ -275,3 +275,20 @@ class ProDjLink:
         self.send_packet(packetTwo, self.opus_ip, 50002)
         time.sleep(5)
         self.send_packet(packetTwo, self.opus_ip, 50002)
+
+    def request_song_metadata(self, trackId, deckNo):
+        packet = PRO_DJ_LINK_BEGIN_BYTES + [0x55] + self.encode_device_name("rekordbox")
+        packet += [0x01, 0x00, 0x17, 0x00, 0x08]
+
+        # Encode trackId in Int32 big endian
+        trackIdBytes = trackId.to_bytes(4, byteorder="little")
+        print(list(trackIdBytes))
+        packet += list(trackIdBytes)
+
+        packet += [0xA]
+
+        packet += [deckNo]
+
+        packet += [0x03, 0x01]
+
+        self.send_packet(packet, self.opus_ip, 50002)

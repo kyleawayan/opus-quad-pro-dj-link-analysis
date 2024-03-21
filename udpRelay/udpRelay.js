@@ -10,6 +10,7 @@ const wss = new WebSocket.Server({ port: 8080 });
 // Listen for UDP messages
 udpSocket.on("message", (message, rinfo) => {
   // Relay the UDP message to all connected WebSocket clients
+  // Print message size
   wss.clients.forEach((client) => {
     if (client.readyState === WebSocket.OPEN) {
       client.send(message);
