@@ -39,8 +39,11 @@ class ProDjLink {
 
   sendPacket(packetBytes, ip, port) {
     const client = dgram.createSocket("udp4");
-    client.send(packetBytes, 0, packetBytes.length, port, ip);
-    client.close();
+
+    client.send(packetBytes, 0, packetBytes.length, port, ip, (err) => {
+      if (err) throw err;
+      client.close();
+    });
   }
 
   static encodeDeviceName(deviceName) {
@@ -67,6 +70,30 @@ class ProDjLink {
 
   static encodeIpAddress(ipAddress) {
     return Buffer.from(ipAddress.split(".").map(Number));
+  }
+
+  // For announce packets on port 50000
+  static decodeMacAddressFromAnnouncePacket(packet) {
+    const macBuffer = packet.slice(38, 44);
+    let macAddress = Array.from(macBuffer)
+      .map((b) => b.toString(16).padStart(2, "0"))
+      .join(":");
+    // If not valid MAC address, return null
+    if (!macAddress.match(/^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$/)) {
+      return null;
+    }
+    return macAddress;
+  }
+
+  // For announce packets on port 50000
+  static decodeIpAddressFromAnnouncePacket(packet) {
+    const ipBuffer = packet.slice(44, 48);
+    let ipAddress = Array.from(ipBuffer).join(".");
+    // If not valid IP address, return null
+    if (!ipAddress.match(/^(\d{1,3}\.){3}\d{1,3}$/)) {
+      return null;
+    }
+    return ipAddress;
   }
 
   sendCdj() {

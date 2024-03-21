@@ -14,7 +14,12 @@ const udpSocket = dgram.createSocket("udp4");
 
 // Listen for UDP messages
 udpSocket.on("message", (message, rinfo) => {
-  console.log(message);
+  if (!proDjLink.opusIp) {
+    const firstAddressRequest = rinfo.address;
+    proDjLink.opusIp = firstAddressRequest;
+    console.log("Opus IP set:", firstAddressRequest);
+    proDjLink.sendCdj();
+  }
 });
 
 // Start listening on UDP port 50002
