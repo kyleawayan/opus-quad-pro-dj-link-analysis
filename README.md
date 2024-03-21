@@ -4,7 +4,16 @@
 
 - `experiments/sub.py` while connected on the same network as the OPUS-QUAD will relay [CDJ status packets](https://djl-analysis.deepsymmetry.org/djl-analysis/vcdj.html#cdj-status-packets) to a WebSocket server on port 8080.
 
+## Special Thanks
+
+- [DJ Link Ecosystem Analysis by Deep Symmetry](https://djl-analysis.deepsymmetry.org/djl-analysis/packets.html)
+- [prolink-connect JS library by evanpurkhiser](https://github.com/evanpurkhiser/prolink-connect)
+
 ## Notes
+
+### CDJ Status Packets binary decode
+
+Can be found here on [prolink-connect repository](https://github.com/evanpurkhiser/prolink-connect/blob/8d0a96e3a40ec9a63691ed780868271410f7c857/src/status/utils.ts#L31-L47)
 
 ### Binary files
 
