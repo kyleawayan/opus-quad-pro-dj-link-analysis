@@ -1,3 +1,9 @@
+# OPUS-QUAD Pro DJ Link Reverse Engineer Packet Analysis
+
+## Usage
+
+- `experiments/sub.py` while connected on the same network as the OPUS-QUAD will relay [CDJ status packets](https://djl-analysis.deepsymmetry.org/djl-analysis/vcdj.html#cdj-status-packets) to a WebSocket server on port 8080.
+
 ## Notes
 
 ### Binary files
