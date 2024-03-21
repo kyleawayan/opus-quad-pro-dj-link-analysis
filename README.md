@@ -2,7 +2,7 @@
 
 ## Usage
 
-- `experiments/sub.py` while connected on the same network as the OPUS-QUAD will relay [CDJ status packets](https://djl-analysis.deepsymmetry.org/djl-analysis/vcdj.html#cdj-status-packets) to a WebSocket server on port 8080.
+- `experiments/sub.py` while connected on the same network as the OPUS-QUAD will relay [CDJ status packets](https://djl-analysis.deepsymmetry.org/djl-analysis/vcdj.html#cdj-status-packets) to a WebSocket server on port 8080. Make sure to also change the IP/mac addresses in the `sub.py` file.
 
 ## Special Thanks
 
