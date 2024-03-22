@@ -47,7 +47,6 @@ This is sort of similar to the [mixer or CDJ keep-alive packets](https://djl-ana
 
 The only metadata I can see being transferred are:
 
-- [Phrase data (PSSI)](https://djl-analysis.deepsymmetry.org/rekordbox-export-analysis/anlz.html#song-structure-tag). _Disclaimer: I haven't verified if this is a complete PSSI file or not, I just saw the "PSSI" header in the hex dump._
 - [Album art](#image-files)
 - Waveform data? (what it looks like)
 - Beatgrid data? (what it looks like)
