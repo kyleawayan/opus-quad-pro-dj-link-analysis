@@ -17,8 +17,6 @@ class ProDjLink {
 
     this.announceUdpSocket = dgram.createSocket("udp4");
     this.statusesUdpSocket = dgram.createSocket("udp4");
-
-    this.firstAnnouncePacketSent = false;
   }
 
   chooseUdpSocket(port) {
@@ -135,8 +133,6 @@ class ProDjLink {
   }
 
   sendKeepAlive() {
-    const weirdNumber = this.firstAnnouncePacketSent ? 0x04 : 0x00;
-
     let packet = Buffer.concat([
       Buffer.from(proDjLinkBeginBytes),
       Buffer.from([0x06, 0x00]),
@@ -144,10 +140,8 @@ class ProDjLink {
       Buffer.from([0x01, 0x03, 0x00, 0x36, 0x17, 0x01]),
       ProDjLink.encodeMacAddress(this.interfaceMacAddress),
       ProDjLink.encodeIpAddress(this.interfaceIp),
-      Buffer.from([weirdNumber, 0x01, 0x00, 0x00, 0x04, 0x08]),
+      Buffer.from([0x04, 0x01, 0x00, 0x00, 0x04, 0x08]),
     ]);
-
-    this.firstAnnouncePacketSent = true;
 
     this.broadcastPacket(packet, 50000);
   }
