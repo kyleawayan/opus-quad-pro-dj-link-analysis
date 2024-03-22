@@ -88,7 +88,15 @@ Byte 0x24 through 0x27 represent the track ID. It is an unsigned 32-bit integer 
 
 Pro dj link header: `56` on port 50002
 
-03 (I've seen 02 sometimes though) at 0x33 can mean its an image?
+02 at 0x25 means its an image.
+
+0x33 is the amount of packets needed to send the whole image.
+
+0x31 is the packet number/index. e.g. packet 0/2, 1/2, etc. to complete the image.
+
+0x21 is the deck number the image corresponds to. 9 is deck 1, 10 is deck 2, 11 is deck 3, 12 is deck 4.
+
+The actual binary data is from 0x34 till the end of the packet.
 
 Start of binary header for JPG: `FF D8 FF`
 
