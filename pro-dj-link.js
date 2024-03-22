@@ -17,6 +17,8 @@ class ProDjLink {
 
     this.announceUdpSocket = dgram.createSocket("udp4");
     this.statusesUdpSocket = dgram.createSocket("udp4");
+
+    this.firstAnnouncePacketSent = false;
   }
 
   chooseUdpSocket(port) {
@@ -125,7 +127,7 @@ class ProDjLink {
       Buffer.from(proDjLinkBeginBytes),
       Buffer.from([0x11]),
       ProDjLink.encodeDeviceName("rekordbox"),
-      Buffer.from([0x01, 0x01, 0x11, 0x01, 0x04, 0x11, 0x01, 0x00, 0x00, 0x00]),
+      Buffer.from([0x01, 0x01, 0x17, 0x01, 0x04, 0x17, 0x01, 0x00, 0x00, 0x00]),
       ProDjLink.encodeWeirdString(this.thisDeviceName),
     ]);
 
@@ -133,15 +135,19 @@ class ProDjLink {
   }
 
   sendKeepAlive() {
+    const weirdNumber = this.firstAnnouncePacketSent ? 0x04 : 0x00;
+
     let packet = Buffer.concat([
       Buffer.from(proDjLinkBeginBytes),
       Buffer.from([0x06, 0x00]),
       ProDjLink.encodeDeviceName("rekordbox"),
-      Buffer.from([0x01, 0x03, 0x00, 0x36, 0x11, 0x01]),
+      Buffer.from([0x01, 0x03, 0x00, 0x36, 0x17, 0x01]),
       ProDjLink.encodeMacAddress(this.interfaceMacAddress),
       ProDjLink.encodeIpAddress(this.interfaceIp),
-      Buffer.from([0x01, 0x01, 0x00, 0x00, 0x04, 0x08]),
+      Buffer.from([weirdNumber, 0x01, 0x00, 0x00, 0x04, 0x08]),
     ]);
+
+    this.firstAnnouncePacketSent = true;
 
     this.broadcastPacket(packet, 50000);
   }
@@ -159,6 +165,104 @@ class ProDjLink {
     ]);
 
     this.broadcastPacket(packet, 50002);
+  }
+
+  sendProDjLinkLightingPackets() {
+    let packet = Buffer.concat([
+      Buffer.from(proDjLinkBeginBytes),
+      Buffer.from([0x16]),
+      ProDjLink.encodeDeviceName("rekordbox"),
+      Buffer.from([
+        0x01, 0x01, 0x17, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00, 0x00,
+      ]),
+    ]);
+
+    // This is sent 10 times
+    for (let i = 0; i < 10; i++) {
+      this.sendPacket(packet, this.opusIp, 50002);
+    }
+  }
+
+  requestSongMetadata(trackId, deckNo) {
+    let trackIdBuffer = Buffer.alloc(4);
+    trackIdBuffer.writeUInt32LE(trackId);
+
+    let packet = Buffer.concat([
+      Buffer.from(proDjLinkBeginBytes),
+      Buffer.from([0x55]),
+      ProDjLink.encodeDeviceName("rekordbox"),
+      Buffer.from([0x01, 0x00, 0x17, 0x00, 0x08]),
+      trackIdBuffer,
+      Buffer.from([0x0a]),
+      Buffer.from([deckNo]),
+      Buffer.from([0x03, 0x01]),
+    ]);
+
+    this.sendPacket(packet, this.opusIp, 50002);
+  }
+
+  sendFirstStage(n) {
+    let packet = Buffer.concat([
+      Buffer.from(proDjLinkBeginBytes),
+      Buffer.from([0x00, 0x00]),
+      ProDjLink.encodeDeviceName("rekordbox"),
+      Buffer.from([0x01, 0x03, 0x00, 0x2c]),
+      Buffer.from([n]),
+      Buffer.from([0x04]),
+      ProDjLink.encodeMacAddress(this.interfaceMacAddress),
+    ]);
+
+    this.broadcastPacket(packet, 50000);
+  }
+
+  sendSecondStage(n) {
+    let packet = Buffer.concat([
+      Buffer.from(proDjLinkBeginBytes),
+      Buffer.from([0x02, 0x00]),
+      ProDjLink.encodeDeviceName("rekordbox"),
+      Buffer.from([0x01, 0x03, 0x00, 0x32]),
+      ProDjLink.encodeIpAddress(this.interfaceIp),
+      ProDjLink.encodeMacAddress(this.interfaceMacAddress),
+      Buffer.from([0x17]),
+      Buffer.from([n]),
+      Buffer.from([0x04, 0x01]),
+    ]);
+
+    this.broadcastPacket(packet, 50000);
+  }
+
+  sendStartupPackets() {
+    const firstStageDelay = 100; // delay in milliseconds
+    const secondStageDelay = 100; // delay in milliseconds
+
+    // First stage sends n=1,2,3 every firstStageDelay milliseconds
+    const firstStageN = [1, 2, 3];
+    for (let i = 0; i < firstStageN.length; i++) {
+      setTimeout(() => {
+        this.sendFirstStage(firstStageN[i]);
+      }, i * firstStageDelay);
+    }
+
+    // Calculate the total delay for the first stage
+    const firstStageTotalDelay = firstStageN.length * firstStageDelay;
+
+    // Second stage sends n=1,1,2,3,4,5,6 every secondStageDelay milliseconds
+    // The two 1s are not a typo
+    const secondStageN = [1, 1, 2, 3, 4, 5, 6];
+    setTimeout(() => {
+      for (let i = 0; i < secondStageN.length; i++) {
+        setTimeout(() => {
+          this.sendSecondStage(secondStageN[i]);
+        }, i * secondStageDelay);
+      }
+    }, firstStageTotalDelay);
+
+    // Calculate the total delay for all startup packets
+    const totalDelay =
+      firstStageTotalDelay + secondStageN.length * secondStageDelay;
+
+    return totalDelay;
   }
 }
 

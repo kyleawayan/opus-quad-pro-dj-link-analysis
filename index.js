@@ -21,6 +21,18 @@ proDjLink.statusesUdpSocket.on("message", (message, rinfo) => {
     setInterval(() => {
       proDjLink.sendRekordboxMixerStatusPacket();
     }, 100);
+
+    // After 1 second, send Pro DJ Link Lighting packets
+    setTimeout(() => {
+      proDjLink.sendProDjLinkLightingPackets();
+      console.log("Sent lighting packets");
+    }, 1000);
+
+    // After 1.3 seconds, request song metadata
+    setTimeout(() => {
+      proDjLink.requestSongMetadata(829, 9);
+      console.log("Requested song metadata");
+    }, 1300);
   }
 
   const packetType = ProDjLink.getProDjLinkPacketType(message);
@@ -32,13 +44,24 @@ proDjLink.statusesUdpSocket.on("message", (message, rinfo) => {
     // Relay to all connected WebSocket clients
     websocketServer.broadcastBinary(message);
   }
+
+  if (packetType == 86) {
+    // We got some metadata back!
+    console.log("Got metadata packet:", message);
+  }
 });
 
 proDjLink.announceUdpSocket.bind(50000);
 proDjLink.statusesUdpSocket.bind(50002);
 
+// Send initial packets
+const startUpPacketsDelay = proDjLink.sendStartupPackets();
+
 // Make ourself discoverable by sending
 // keep alive packets every 2 seconds.
-setInterval(() => {
-  proDjLink.sendKeepAlive();
-}, 2000);
+// (Only after the initial packets have been sent)
+setTimeout(() => {
+  setInterval(() => {
+    proDjLink.sendKeepAlive();
+  }, 2000);
+}, startUpPacketsDelay);
