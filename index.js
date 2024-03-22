@@ -17,17 +17,6 @@ proDjLink.statusesUdpSocket.on("message", (message, rinfo) => {
     console.log("Opus IP set:", firstAddressRequest);
     proDjLink.sendCdj();
 
-    // Start sending out mixer status every 0.1 seconds
-    setInterval(() => {
-      proDjLink.sendRekordboxMixerStatusPacket();
-    }, 100);
-
-    // After 1 second, send Pro DJ Link Lighting packets
-    setTimeout(() => {
-      proDjLink.sendProDjLinkLightingPackets();
-      console.log("Sent lighting packets");
-    }, 1000);
-
     // After 1.3 seconds, request song metadata
     setTimeout(() => {
       proDjLink.requestSongMetadata(829, 9);
@@ -54,14 +43,8 @@ proDjLink.statusesUdpSocket.on("message", (message, rinfo) => {
 proDjLink.announceUdpSocket.bind(50000);
 proDjLink.statusesUdpSocket.bind(50002);
 
-// Send initial packets
-const startUpPacketsDelay = proDjLink.sendStartupPackets();
-
 // Make ourself discoverable by sending
 // keep alive packets every 2 seconds.
-// (Only after the initial packets have been sent)
-setTimeout(() => {
-  setInterval(() => {
-    proDjLink.sendKeepAlive();
-  }, 2000);
-}, startUpPacketsDelay);
+setInterval(() => {
+  proDjLink.sendKeepAlive();
+}, 2000);
