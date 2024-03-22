@@ -117,4 +117,4 @@ Same 02 at 0x32, so this may be image?
 
 Have not tested concatenating the two packets to see if it makes a complete image.
 
-Since I think rekordbox compresses the album arts to 300(?)x300(?) on export, I think there are always guaranteed to be only two packets for a single image.
+Since I think rekordbox compresses the album arts to 300(?)x300(?) on export, I *think* there may be only two packets for a single image.
