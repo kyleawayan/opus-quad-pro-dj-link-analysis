@@ -4,10 +4,18 @@
 
 ```
 npm install
-npm start
+npm start -- --interfaceip=192.168.112.173 --mac=00:e0:4c:65:3b:75 --devicename="macbook pro"
 ```
 
+| Argument        | Description                                                 | Example             |
+| --------------- | ----------------------------------------------------------- | ------------------- |
+| `--interfaceip` | The IP address of the interface                             | `192.168.112.173`   |
+| `--mac`         | The MAC address of the device                               | `00:e0:4c:65:3b:75` |
+| `--devicename`  | The name of the device. This does not affect functionality. | `"macbook pro"`     |
+
 This will connect to the OPUS-QUAD and relay the CDJ status packets to a WebSocket server on port 8080. Make sure to also change the interface IP and MAC address in `index.js` for the device you are running this on. Note that not all CDJ statuses are reported back from the OPUS-QUAD.
+
+Metadata that is received will console log a preview of the buffer.
 
 ## Special Thanks
 

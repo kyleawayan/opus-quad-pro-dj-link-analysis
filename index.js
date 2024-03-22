@@ -1,11 +1,17 @@
 import ProDjLink from "./pro-dj-link.js";
 import WebsocketServer from "./websocket-server.js";
 
-const proDjLink = new ProDjLink(
-  "192.168.112.173",
-  "00:e0:4c:65:3b:75",
-  "macbook"
-);
+// Parse command line arguments
+const args = process.argv.slice(2);
+const interfaceIp = args
+  .find((arg) => arg.startsWith("--interfaceip"))
+  .split("=")[1];
+const mac = args.find((arg) => arg.startsWith("--mac")).split("=")[1];
+const deviceName = args
+  .find((arg) => arg.startsWith("--devicename"))
+  .split("=")[1];
+
+const proDjLink = new ProDjLink(interfaceIp, mac, deviceName);
 
 const websocketServer = new WebsocketServer(8080);
 
