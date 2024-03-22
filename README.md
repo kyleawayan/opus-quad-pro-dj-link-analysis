@@ -2,7 +2,7 @@
 
 ## Usage
 
-```
+```sh
 npm install
 npm start -- --interfaceip=192.168.112.173 --mac=00:e0:4c:65:3b:75 --devicename="macbook pro"
 ```
