@@ -101,28 +101,3 @@ The actual binary data is from 0x34 till the end of the packet.
 Start of binary header for JPG: `FF D8 FF`
 
 So binary starts at 0x33, and goes to the end of the packet.
-
-Showing this image however shows that the image wasn't complete. It was only a part of the image and the rest was grey.
-
-However, next packet sent after might be a continuation of the image.
-
-```
-0000  51 73 70 74 31 57 6d 4a  4f 4c 56 4f 50 55 53 2d   Qspt1WmJ OLVOPUS-
-0010  51 55 41 44 00 00 00 00  00 00 00 00 00 00 00 01   QUAD···· ········
-0020  00 09 04 f0 00 02 00 01  00 00 01 9e 09 00 01 00   ········ ········
-0030  00 01 00 02 2d c7 71 29  29 25 c4 2f 71 dd ea f3   ····-·q) )%·/q···
-0040  3f f7 a9 1f bd c0 02 b8  a5 71 a5 40 10 68 64 10   ?······· ·q·@·hd·
-0050  7d 7f c7 6b 46 87 88 76  3f b9 96 e7 c2 d9 fa 74   }··kF··v ?······t
-0060  00 b7 11 2f d4 5b fd d5  b4 8e 2d 4f a1 4f 4d 2e   ···/·[·· ··-O·OM.
-0070  6c 38 55 58 d1 fa 05 ba  d3 90 52 9f 35 47 cd 38   l8UX···· ··R·5G·8
-0080  51 20 91 eb 49 d6 27 0d  2e 0a d5 c1 c5 8e 27 f1   Q ··I·'· .·····'·
-0090  06 d5 b5 d7 53 4b d4 c9  d2 c4 29 51 4c 86 b6 bc   ····SK·· ··)QL···
-```
-
-Same 02 at 0x32, so this may be image?
-
-**Byte 0x31 incremented by 1**, so it may be a continuation of the previous image?
-
-Have not tested concatenating the two packets to see if it makes a complete image.
-
-Since I think rekordbox compresses the album arts to 300(?)x300(?) on export, I *think* there may be only two packets for a single image.
