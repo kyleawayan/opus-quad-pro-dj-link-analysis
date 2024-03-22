@@ -100,4 +100,4 @@ The actual binary data is from 0x34 till the end of the packet.
 
 Start of binary header for JPG: `FF D8 FF`
 
-So binary starts at 0x33, and goes to the end of the packet.
+So binary starts at 0x34, and goes to the end of the packet.
