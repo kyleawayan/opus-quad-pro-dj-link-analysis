@@ -27,9 +27,6 @@ proDjLink.statusesUdpSocket.on("message", (message, rinfo) => {
   const packetType = ProDjLink.getProDjLinkPacketType(message);
 
   if (packetType == 10) {
-    // CDJ Status Packet
-    proDjLink.scanForNeededBytesForMixerStatus(message);
-
     // Relay to all connected WebSocket clients
     websocketServer.broadcastBinary(message);
   }
