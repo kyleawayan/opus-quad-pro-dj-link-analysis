@@ -1,16 +1,17 @@
 {
-  "name": "udprelay",
+  "name": "opus-quad-pro-dj-link-analysis",
   "version": "1.0.0",
   "description": "",
-  "main": "udpRelay.js",
+  "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node udpRelay.js"
+    "start": "node index.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "ip": "^2.0.1",
     "ws": "^8.16.0"
   }
 }

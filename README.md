@@ -2,7 +2,20 @@
 
 ## Usage
 
-- `experiments/sub.py` while connected on the same network as the OPUS-QUAD will relay [CDJ status packets](https://djl-analysis.deepsymmetry.org/djl-analysis/vcdj.html#cdj-status-packets) to a WebSocket server on port 8080. Make sure to also change the IP/mac addresses in the `sub.py` file. Note that not all CDJ statuses are reported back from the OPUS-QUAD.
+```sh
+npm install
+npm start -- --interfaceip=192.168.112.173 --mac=00:e0:4c:65:3b:75 --devicename="macbook pro"
+```
+
+| Argument        | Description                                                 | Example             |
+| --------------- | ----------------------------------------------------------- | ------------------- |
+| `--interfaceip` | The IP address of the interface                             | `192.168.112.173`   |
+| `--mac`         | The MAC address of the device                               | `00:e0:4c:65:3b:75` |
+| `--devicename`  | The name of the device. This does not affect functionality. | `"macbook pro"`     |
+
+This will connect to the OPUS-QUAD and relay the CDJ status packets to a WebSocket server on port 8080. Make sure to also change the interface IP and MAC address in `index.js` for the device you are running this on. Note that not all CDJ statuses are reported back from the OPUS-QUAD.
+
+Metadata that is received will console log a preview of the buffer.
 
 ## Special Thanks
 
@@ -13,13 +26,53 @@
 
 ### CDJ Status Packets binary decode
 
-Can be found here on [prolink-connect repository](https://github.com/evanpurkhiser/prolink-connect/blob/8d0a96e3a40ec9a63691ed780868271410f7c857/src/status/utils.ts#L31-L47)
+Can be found here on [prolink-connect repository](https://github.com/evanpurkhiser/prolink-connect/blob/8d0a96e3a40ec9a63691ed780868271410f7c857/src/status/utils.ts#L31-L47). Note that not all CDJ statuses are reported back from the OPUS-QUAD.
+
+#### Timecode syncing???
+
+I would like to point out the "beat" (the current live beat) and bpm/pitch fader info is reported back, meaning this could be used for a timecode syncing to videos or lighting if such.
+
+Device ID, Track ID, Track Device ID, Track Slot, and Track Type are also reported back. This can maybe be used to have specific timecode offsets for different tracks. In certain scenarios, the IDs additionally with the album art can be used to verify that the correct track is playing (as we don't have access to track title or artist).
+
+### Make the OPUS-QUAD send back some metadata
+
+Your announce packets on port 50000 should look like this:
+
+```
+0000  51 73 70 74 31 57 6d 4a  4f 4c 06 00 72 65 6b 6f   Qspt1WmJ OL··reko
+0010  72 64 62 6f 78 00 00 00  00 00 00 00 00 00 00 00   rdbox··· ········
+0020  01 03 00 36 17 01 00 e0  4c 65 3b 75 c0 a8 70 ad   ···6···· Le;u··p·
+0030  04 01 00 00 04 08                                  ······
+```
+
+This is sort of similar to the [mixer or CDJ keep-alive packets](https://djl-analysis.deepsymmetry.org/djl-analysis/startup.html#mixer-keep-alive). However, this is what I found rekordbox to send out (I think in Pro DJ Link Lighting mode?) that makes the OPUS-QUAD send back metadata.
+
+The only metadata I can see being transferred are:
+
+- [Phrase data (PSSI)](https://djl-analysis.deepsymmetry.org/rekordbox-export-analysis/anlz.html#song-structure-tag). _Disclaimer: I haven't verified if this is a complete PSSI file or not, I just saw the "PSSI" header in the hex dump._
+- [Album art](#image-files)
+- Waveform data? (what it looks like)
+- Beatgrid data? (what it looks like)
+
+When a new song is loaded, the above four pieces of metadata are automatically sent to you. To request phrase data, please see below.
+
+### Request Phrase Metadata
+
+```
+0000  51 73 70 74 31 57 6d 4a  4f 4c 55 72 65 6b 6f 72   Qspt1WmJ OLUrekor
+0010  64 62 6f 78 00 00 00 00  00 00 00 00 00 00 00 01   dbox···· ········
+0020  00 17 00 08 b8 00 00 00  0a 09 03 01               ········ ····
+```
+
+Right after this packet is sent on port 50002 to the opus, the opus responds back with the [PSSI](https://djl-analysis.deepsymmetry.org/rekordbox-export-analysis/anlz.html#song-structure-tag) if it has phrase data (I only saw the "PSSI" header, not sure how complete the PSSI file actually is). If the song doesn't have phrase data, it responds with what looks like to be a generic message, and no "PSSI" header.
+
+Bytes 0x2b represents the deck number. On opus quad, 9 is deck 1, 10 is deck 2, 11 is deck 3, 12 is deck 4.
+
+Byte 0x24 through 0x27 represent the track ID. It is an unsigned 32-bit integer with little endian.
 
 ### Binary files
 
-#### Image file was sent to my computer...?
-
-I think I had Pro DJ Link Lighting running on rekordbox when I was sniffing.
+#### Image files
 
 ```
 0000  51 73 70 74 31 57 6d 4a  4f 4c 56 4f 50 55 53 2d   Qspt1WmJ OLVOPUS-
@@ -45,7 +98,7 @@ So binary starts at 0x33, and goes to the end of the packet.
 
 Showing this image however shows that the image wasn't complete. It was only a part of the image and the rest was grey.
 
-However, next packet sent after might be a conitnuation of the image.
+However, next packet sent after might be a continuation of the image.
 
 ```
 0000  51 73 70 74 31 57 6d 4a  4f 4c 56 4f 50 55 53 2d   Qspt1WmJ OLVOPUS-
@@ -65,3 +118,5 @@ Same 02 at 0x32, so this may be image?
 **Byte 0x31 incremented by 1**, so it may be a continuation of the previous image?
 
 Have not tested concatenating the two packets to see if it makes a complete image.
+
+Since I think rekordbox compresses the album arts to 300(?)x300(?) on export, I think there are always guaranteed to be only two packets for a single image.
