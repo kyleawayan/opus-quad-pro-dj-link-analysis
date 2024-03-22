@@ -19,8 +19,9 @@ proDjLink.statusesUdpSocket.on("message", (message, rinfo) => {
 
     // After 1.3 seconds, request song metadata
     setTimeout(() => {
-      proDjLink.requestSongMetadata(829, 9);
-      console.log("Requested song metadata");
+      // requestSongMetadata(trackId, deckNo)
+      // proDjLink.requestSongMetadata(829, 9);
+      // console.log("Requested song metadata");
     }, 1300);
   }
 
