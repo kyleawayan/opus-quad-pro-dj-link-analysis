@@ -46,8 +46,10 @@ proDjLink.statusesUdpSocket.on("message", (message, rinfo) => {
   }
 
   if (packetType == 86) {
-    // We got some metadata back!
-    console.log("Got metadata packet:", message);
+    // If byte 0x25 is 02, its an image
+    if (message[0x25] == 2) {
+      websocketServer.broadcastBinary(message);
+    }
   }
 });
 
