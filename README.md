@@ -51,7 +51,7 @@ The only metadata I can see being transferred are:
 - Waveform data? (what it looks like)
 - Beatgrid data? (what it looks like)
 
-When a new song is loaded, the above four pieces of metadata are automatically sent to you. To request phrase data, please see below.
+When a new song is loaded, the above three pieces of metadata are automatically sent to you. To request phrase data, please see below.
 
 ### Request Phrase Metadata
 
