@@ -19,6 +19,68 @@ const proDjLink = new ProDjLink(interfaceIp, mac, deviceName);
 
 const websocketServer = new WebsocketServer(wsPort);
 
+class PacketTracker {
+  constructor() {
+    this.packetsReceived = 0;
+    this.data = [];
+  }
+
+  receivePacket(packetData, packetNumber, totalPackets) {
+    // Make sure packetData is a UInt8Array
+    if (!(packetData instanceof Uint8Array)) {
+      packetData = new Uint8Array(packetData);
+    }
+
+    this.data.push(...packetData);
+    this.packetsReceived++;
+
+    if (packetNumber === totalPackets) {
+      return this.data;
+    } else {
+      return null;
+    }
+  }
+
+  reset() {
+    this.packetsReceived = 0;
+    this.data = [];
+  }
+}
+
+class ImageTracker extends PacketTracker {
+  receivePacket(packetData, packetNumber, totalPackets) {
+    const data = super.receivePacket(packetData, packetNumber, totalPackets);
+
+    if (data) {
+      // Encode UInt8Array to base64
+      const completeImageData = String.fromCharCode(...this.data);
+      const base64ImageData = btoa(completeImageData);
+
+      return base64ImageData;
+    } else {
+      return null;
+    }
+  }
+}
+
+class PhraseTracker extends PacketTracker {
+  receivePacket(packetData, packetNumber, totalPackets) {
+    const data = super.receivePacket(packetData, packetNumber, totalPackets);
+
+    if (data) {
+      return data;
+    } else {
+      return null;
+    }
+  }
+}
+
+let state = new Array(4).fill().map(() => ({
+  trackId: -1,
+  albumArt: new ImageTracker(),
+  phraseDataBase64: new PhraseTracker(),
+}));
+
 // Listen for UDP messages
 proDjLink.statusesUdpSocket.on("message", (message, rinfo) => {
   if (
@@ -29,26 +91,49 @@ proDjLink.statusesUdpSocket.on("message", (message, rinfo) => {
     proDjLink.opusIp = firstAddressRequest;
     console.log("Opus IP set:", firstAddressRequest);
     proDjLink.sendCdj();
-
-    // After 1.3 seconds, request song metadata
-    setTimeout(() => {
-      // requestSongMetadata(trackId, deckNo)
-      // proDjLink.requestSongMetadata(829, 9);
-      // console.log("Requested song metadata");
-    }, 1300);
   }
 
   const packetType = ProDjLink.getProDjLinkPacketType(message);
+  const packet = new DataView(message.buffer);
 
   if (packetType == 10) {
+    // CDJ Status packet
+
+    // Update state
+    const deckIndex = packet.getUint8(0x21) - 9;
+
+    const trackId = packet.getUint32(0x2c);
+    const deckState = state[deckIndex];
+
+    if (trackId !== deckState.trackId) {
+      deckState.trackId = trackId;
+      deckState.albumArt.reset();
+      deckState.phraseDataBase64.reset();
+    }
+
     // Relay to all connected WebSocket clients
-    websocketServer.broadcastBinary(message);
+    websocketServer.broadcastBinary(packet);
   }
 
   if (packetType == 86) {
+    // Binary packet
+    const deckIndex = packet.getUint8(0x21) - 9;
+
     // If byte 0x25 is 02, its an image
-    if (message[0x25] == 2) {
-      websocketServer.broadcastBinary(message);
+    if (packet.getUint8(0x25) == 2) {
+      const numberOfPacketsToCompleteImage = packet.getUint8(0x33) - 1;
+      const packetNumber = packet.getUint8(0x31);
+      const trackIdForImage = packet.getUint32(0x28);
+
+      const base64ImageData = state[deckIndex].albumArt.receivePacket(
+        packet.buffer.slice(0x2c),
+        packetNumber,
+        numberOfPacketsToCompleteImage
+      );
+
+      if (base64ImageData) {
+        console.log("Image received");
+      }
     }
   }
 });
@@ -60,4 +145,5 @@ proDjLink.statusesUdpSocket.bind(50002);
 // keep alive packets every 2 seconds.
 setInterval(() => {
   proDjLink.sendKeepAlive();
+  console.log(state);
 }, 2000);
