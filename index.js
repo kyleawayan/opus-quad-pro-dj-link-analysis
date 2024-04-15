@@ -44,6 +44,11 @@ proDjLink.statusesUdpSocket.on("message", (message, rinfo) => {
     const lastKnownTrackId = deckTrackIds[deckIndex];
 
     if (trackId !== lastKnownTrackId) {
+      // There is a split second when track id is 0,
+      // when a song is loaded, ignore it
+      if (trackId === 0) {
+        return;
+      }
       // Update track id state
       deckTrackIds[deckIndex] = trackId;
       // Request for phrase data
@@ -55,6 +60,8 @@ proDjLink.statusesUdpSocket.on("message", (message, rinfo) => {
   }
 
   if (packetType == 86) {
+    // Binary packet
+
     // If byte 0x25 is 02, its an image binary packet,
     // just relay it to all connected WebSocket clients
     if (packet.getUint8(0x25) == 0x02) {
