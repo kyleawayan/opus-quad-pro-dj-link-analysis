@@ -19,67 +19,7 @@ const proDjLink = new ProDjLink(interfaceIp, mac, deviceName);
 
 const websocketServer = new WebsocketServer(wsPort);
 
-class PacketTracker {
-  constructor() {
-    this.packetsReceived = 0;
-    this.data = [];
-  }
-
-  receivePacket(packetData, packetNumber, totalPackets) {
-    // Make sure packetData is a UInt8Array
-    if (!(packetData instanceof Uint8Array)) {
-      packetData = new Uint8Array(packetData);
-    }
-
-    this.data.push(...packetData);
-    this.packetsReceived++;
-
-    if (packetNumber === totalPackets) {
-      return this.data;
-    } else {
-      return null;
-    }
-  }
-
-  reset() {
-    this.packetsReceived = 0;
-    this.data = [];
-  }
-}
-
-class ImageTracker extends PacketTracker {
-  receivePacket(packetData, packetNumber, totalPackets) {
-    const data = super.receivePacket(packetData, packetNumber, totalPackets);
-
-    if (data) {
-      // Encode UInt8Array to base64
-      const completeImageData = String.fromCharCode(...this.data);
-      const base64ImageData = btoa(completeImageData);
-
-      return base64ImageData;
-    } else {
-      return null;
-    }
-  }
-}
-
-class PhraseTracker extends PacketTracker {
-  receivePacket(packetData, packetNumber, totalPackets) {
-    const data = super.receivePacket(packetData, packetNumber, totalPackets);
-
-    if (data) {
-      return data;
-    } else {
-      return null;
-    }
-  }
-}
-
-let state = new Array(4).fill().map(() => ({
-  trackId: -1,
-  albumArt: new ImageTracker(),
-  phraseDataBase64: new PhraseTracker(),
-}));
+let deckTrackIds = [0, 0, 0, 0];
 
 // Listen for UDP messages
 proDjLink.statusesUdpSocket.on("message", (message, rinfo) => {
@@ -99,41 +39,33 @@ proDjLink.statusesUdpSocket.on("message", (message, rinfo) => {
   if (packetType == 10) {
     // CDJ Status packet
 
-    // Update state
     const deckIndex = packet.getUint8(0x21) - 9;
-
     const trackId = packet.getUint32(0x2c);
-    const deckState = state[deckIndex];
+    const lastKnownTrackId = deckTrackIds[deckIndex];
 
-    if (trackId !== deckState.trackId) {
-      deckState.trackId = trackId;
-      deckState.albumArt.reset();
-      deckState.phraseDataBase64.reset();
+    if (trackId !== lastKnownTrackId) {
+      // Update track id state
+      deckTrackIds[deckIndex] = trackId;
+      // Request for phrase data
+      proDjLink.requestSongMetadata(trackId, deckIndex + 9);
     }
 
     // Relay to all connected WebSocket clients
-    websocketServer.broadcastBinary(packet);
+    websocketServer.broadcastBinary(packet.buffer);
   }
 
   if (packetType == 86) {
-    // Binary packet
-    const deckIndex = packet.getUint8(0x21) - 9;
+    // If byte 0x25 is 02, its an image binary packet,
+    // just relay it to all connected WebSocket clients
+    if (packet.getUint8(0x25) == 0x02) {
+      websocketServer.broadcastBinary(packet.buffer);
+    }
 
-    // If byte 0x25 is 02, its an image
-    if (packet.getUint8(0x25) == 2) {
-      const numberOfPacketsToCompleteImage = packet.getUint8(0x33) - 1;
-      const packetNumber = packet.getUint8(0x31);
-      const trackIdForImage = packet.getUint32(0x28);
-
-      const base64ImageData = state[deckIndex].albumArt.receivePacket(
-        packet.buffer.slice(0x2c),
-        packetNumber,
-        numberOfPacketsToCompleteImage
-      );
-
-      if (base64ImageData) {
-        console.log("Image received");
-      }
+    // If byte 0x25 is 0a, its phrase data
+    // Request for the phrase data (already requested when track id changes),
+    // then relay the replies to all connected WebSocket clients
+    if (packet.getUint8(0x25) == 0x0a) {
+      websocketServer.broadcastBinary(packet.buffer);
     }
   }
 });
@@ -145,5 +77,4 @@ proDjLink.statusesUdpSocket.bind(50002);
 // keep alive packets every 2 seconds.
 setInterval(() => {
   proDjLink.sendKeepAlive();
-  console.log(state);
 }, 2000);
