@@ -11,9 +11,13 @@ const deviceName = args
   .find((arg) => arg.startsWith("--devicename"))
   .split("=")[1];
 
+// Add optional WebSocket port argument
+const wsPortArg = args.find((arg) => arg.startsWith("--wsport"));
+const wsPort = wsPortArg ? wsPortArg.split("=")[1] : 8080;
+
 const proDjLink = new ProDjLink(interfaceIp, mac, deviceName);
 
-const websocketServer = new WebsocketServer(8080);
+const websocketServer = new WebsocketServer(wsPort);
 
 // Listen for UDP messages
 proDjLink.statusesUdpSocket.on("message", (message, rinfo) => {
