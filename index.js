@@ -17,7 +17,10 @@ const websocketServer = new WebsocketServer(8080);
 
 // Listen for UDP messages
 proDjLink.statusesUdpSocket.on("message", (message, rinfo) => {
-  if (!proDjLink.opusIp) {
+  if (
+    !proDjLink.opusIp &&
+    ProDjLink.checkIfFirstPort50002PacketIsFromOpusQuad(message)
+  ) {
     const firstAddressRequest = rinfo.address;
     proDjLink.opusIp = firstAddressRequest;
     console.log("Opus IP set:", firstAddressRequest);
