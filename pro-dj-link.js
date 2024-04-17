@@ -6,6 +6,12 @@ const proDjLinkBeginBytes = [
   0x51, 0x73, 0x70, 0x74, 0x31, 0x57, 0x6d, 0x4a, 0x4f, 0x4c,
 ];
 
+const firstPacketOn50002FromOpusQuad = [
+  0x51, 0x73, 0x70, 0x74, 0x31, 0x57, 0x6d, 0x4a, 0x4f, 0x4c, 0x10, 0x4f, 0x50,
+  0x55, 0x53, 0x2d, 0x51, 0x55, 0x41, 0x44, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x09, 0x00, 0x00,
+];
+
 class ProDjLink {
   constructor(interfaceIp, interfaceMacAddress, thisDeviceName) {
     this.interfaceIp = interfaceIp;
@@ -96,6 +102,16 @@ class ProDjLink {
     const buffer = Buffer.alloc(2); // creates a buffer of length 2 bytes
     buffer.writeUInt16BE(rawBPM, 0); // Write rawBPM in Big Endian format
     return buffer;
+  }
+
+  static checkIfFirstPort50002PacketIsFromOpusQuad(packet) {
+    for (let i = 0; i < firstPacketOn50002FromOpusQuad.length; i++) {
+      if (packet[i] !== firstPacketOn50002FromOpusQuad[i]) {
+        return false;
+      }
+    }
+
+    return true;
   }
 
   scanForNeededBytesForMixerStatus(packet) {
