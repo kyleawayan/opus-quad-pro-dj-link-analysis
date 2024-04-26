@@ -2,6 +2,9 @@
 
 Some reverse engineering of the Pro DJ Link protocol from the Pioneer DJ OPUS-QUAD. Note that the OPUS-QUAD does not fully support the protocol. However, the OPUS-QUAD does support [PRO DJ LINK Lighting](https://www.youtube.com/watch?v=KDEJVMGnlQY) even in standalone mode. This provides enough information to build a [timecode syncing system](#timecode-syncing). In this repository, I document all the findings of the Pro DJ Link protocol using packet analysis.
 
+## Integration with Beat Link Trigger
+Please see the [ongoing thread in the Deep Symmetry Zulip](https://deep-symmetry.zulipchat.com/#narrow/stream/275322-beat-link-trigger/topic/Opus.20Quad.20Integration) to implement OPUS-QUAD support in [Beat Link Trigger](https://github.com/Deep-Symmetry/beat-link-trigger).
+
 ## Special Thanks
 
 - [DJ Link Ecosystem Analysis by Deep Symmetry](https://djl-analysis.deepsymmetry.org/djl-analysis/packets.html)
