@@ -29,7 +29,7 @@ npm start -- --interfaceip=192.168.112.173 --mac=00:e0:4c:65:3b:75 --devicename=
 
 ## Timecode syncing
 
-The [Beat Link Trigger software](#integration-with-beat-link-trigger) is able to connect to the OPUS-QUAD and output timecode. Please see the [SMPTE Linear Timecode integration example in the Beat Link Trigger User Guide](https://blt-guide.deepsymmetry.org/beat-link-trigger/7.4.1/Integration_SMPTE.html).
+The [Beat Link Trigger software](#integration-with-beat-link-trigger) is able to connect to the OPUS-QUAD and output timecode, even including dynamically setting timecode offsets based on the song playing. Please see the [SMPTE Linear Timecode integration example in the Beat Link Trigger User Guide](https://blt-guide.deepsymmetry.org/beat-link-trigger/7.4.1/Integration_SMPTE.html).
 
 ## How it works
 
@@ -156,4 +156,4 @@ From 0x34 to the end of the packet is the binary data.
 
 ### Phrase data
 
-Please refer to [phrase data (PSSI) on DJ Link Ecosystem Analysis](https://djl-analysis.deepsymmetry.org/rekordbox-export-analysis/anlz.html#song-structure-tag). _Disclaimer: I haven't verified if what is sent back is a complete PSSI file or not, I just saw the "PSSI" header in the hex dump._
+Please refer to [phrase data (PSSI) on DJ Link Ecosystem Analysis](https://djl-analysis.deepsymmetry.org/rekordbox-export-analysis/anlz.html#-structure-tag). _Disclaimer: I haven't verified if what is sent back is a complete PSSI file or not, I just saw the "PSSI" header in the hex dump._
