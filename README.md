@@ -3,6 +3,8 @@
 Some reverse engineering of the Pro DJ Link protocol from the Pioneer DJ OPUS-QUAD. Note that the OPUS-QUAD does not fully support the protocol. However, the OPUS-QUAD does support [PRO DJ LINK Lighting](https://www.youtube.com/watch?v=KDEJVMGnlQY) even in standalone mode. This provides enough information to build a [timecode syncing system](#timecode-syncing). In this repository, I document all the findings of the Pro DJ Link protocol using packet analysis.
 
 ## Integration with Beat Link Trigger
+The OPUS-QUAD is now supported with Beat Link Trigger, a software that bridges Pioneer DJ equipment to lighting, video, and various other software. It is supported in v8.0.0 and above.
+
 Please see the [ongoing thread in the Deep Symmetry Zulip](https://deep-symmetry.zulipchat.com/#narrow/stream/275322-beat-link-trigger/topic/Opus.20Quad.20Integration) to implement OPUS-QUAD support in [Beat Link Trigger](https://github.com/Deep-Symmetry/beat-link-trigger).
 
 ## Special Thanks
@@ -27,13 +29,7 @@ npm start -- --interfaceip=192.168.112.173 --mac=00:e0:4c:65:3b:75 --devicename=
 
 ## Timecode syncing
 
-I would like to point out the "beat" (the number of beats elapsed in the song) and bpm/pitch fader info is reported back, meaning this could be used for a timecode syncing to videos or lighting if such.
-
-Device ID, Track ID, Track Device ID, Track Slot, and Track Type are also reported back. This can maybe be used to have specific timecode offsets for different tracks. In certain scenarios, the IDs additionally with the album art can be used to verify that the correct track is playing (as we don't have access to track title or artist).
-
-The only downside is that the timecode will not be accurate, and with this approach of using only the number of beats elapsed, heavy interpolation will be needed. In summary, this timecode application will work fine for playing tracks linearly, but not for scratching or jumping around the track. Variable tempo tracks will also not work. With the _maybe beatgrid data_ we can get, that will help tracks with variable tempos, only if the absolute timestamp is included in the beatgrid data.
-
-I am currently developing a TouchDesigner project. This project will output SMPTE timecode and provide offsets for certain tracks, leveraging a QR code in the album art (this makes it easy for other people to "make" timecode offsets on their own rekordbox USBs). I will update this repository with the project when it is done. It is pretty basic, and only uses the beat number and bpm/pitch fader info.
+The [Beat Link Trigger software](#integration-with-beat-link-trigger) is able to connect to the OPUS-QUAD and output timecode. Please see the [SMPTE Linear Timecode integration example in the Beat Link Trigger User Guide](https://blt-guide.deepsymmetry.org/beat-link-trigger/7.4.1/Integration_SMPTE.html).
 
 ## How it works
 
