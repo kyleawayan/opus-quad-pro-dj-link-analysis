@@ -156,4 +156,4 @@ From 0x34 to the end of the packet is the binary data.
 
 ### Phrase data
 
-Please refer to [phrase data (PSSI) on DJ Link Ecosystem Analysis](https://djl-analysis.deepsymmetry.org/rekordbox-export-analysis/anlz.html#-structure-tag). _Disclaimer: I haven't verified if what is sent back is a complete PSSI file or not, I just saw the "PSSI" header in the hex dump._
+Please refer to [phrase data (PSSI) on DJ Link Ecosystem Analysis](https://djl-analysis.deepsymmetry.org/rekordbox-export-analysis/anlz.html#song-structure-tag). _Disclaimer: I haven't verified if what is sent back is a complete PSSI file or not, I just saw the "PSSI" header in the hex dump._
