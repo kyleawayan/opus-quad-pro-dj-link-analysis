@@ -149,7 +149,7 @@ These are sent with binary data. The binary packets' format seem to be all the s
 | 0x25   | Type of binary data: `02` for image, `06` for beatgrid data?, `04` for waveform data? |
 | 0x28   | Track ID (32-bit integer, big endian)                                                 |
 | 0x31   | Packet number/index (e.g. packet 0/2, 1/2, etc.)                                      |
-| 0x33   | Amount of packets needed to send the whole binary data (minus 1)                      |
+| 0x33   | Amount of packets needed to send the whole binary data                                |
 | 0x34   | Start of the actual binary data                                                       |
 
 From 0x34 to the end of the packet is the binary data.
