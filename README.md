@@ -7,7 +7,7 @@ Some reverse engineering of the Pro DJ Link protocol from the Pioneer DJ OPUS-QU
 > [!NOTE]  
 > **Beat Link Trigger is the best way to get started with interfacing with the OPUS-QUAD.**
 
-The OPUS-QUAD is now supported in [Beat Link Trigger](https://github.com/Deep-Symmetry/beat-link-trigger), a software that bridges Pioneer DJ equipment to lighting, video, and various other software. It is supported as of version 8.0.0. Some of the code in this project was contributed to Beat Link Trigger.
+The OPUS-QUAD is now supported in [Beat Link Trigger](https://github.com/Deep-Symmetry/beat-link-trigger), a software that bridges Pioneer DJ equipment to lighting, video, and various other software. It is supported as of version 8.0.0. Some of the findings in this project were contributed to Beat Link Trigger.
 
 To follow development or get involved, see the [ongoing thread in the Deep Symmetry Zulip](https://deep-symmetry.zulipchat.com/#narrow/stream/275322-beat-link-trigger/topic/Opus.20Quad.20Integration).
 
