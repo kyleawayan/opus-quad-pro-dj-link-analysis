@@ -3,9 +3,13 @@
 Some reverse engineering of the Pro DJ Link protocol from the Pioneer DJ OPUS-QUAD. Note that the OPUS-QUAD does not fully support the protocol. However, the OPUS-QUAD does support [PRO DJ LINK Lighting](https://www.youtube.com/watch?v=KDEJVMGnlQY) even in standalone mode. This provides enough information to build a [timecode syncing system](#timecode-syncing). In this repository, I document all the findings of the Pro DJ Link protocol using packet analysis.
 
 ## Integration with Beat Link Trigger
-The OPUS-QUAD is now supported with [Beat Link Trigger](https://github.com/Deep-Symmetry/beat-link-trigger), a software that bridges Pioneer DJ equipment to lighting, video, and various other software. It is supported in v8.0.0 and above.
 
-Please see the [ongoing thread in the Deep Symmetry Zulip](https://deep-symmetry.zulipchat.com/#narrow/stream/275322-beat-link-trigger/topic/Opus.20Quad.20Integration) to implement OPUS-QUAD support in [Beat Link Trigger](https://github.com/Deep-Symmetry/beat-link-trigger).
+> [!NOTE]  
+> **Beat Link Trigger is the best way to get started with interfacing with the OPUS-QUAD.**
+
+The OPUS-QUAD is now supported in [Beat Link Trigger](https://github.com/Deep-Symmetry/beat-link-trigger), a software that bridges Pioneer DJ equipment to lighting, video, and various other software. It is supported as of version 8.0.0. Some of the code in this project was contributed to Beat Link Trigger.
+
+To follow development or get involved, see the [ongoing thread in the Deep Symmetry Zulip](https://deep-symmetry.zulipchat.com/#narrow/stream/275322-beat-link-trigger/topic/Opus.20Quad.20Integration).
 
 ## Special Thanks
 
@@ -115,8 +119,6 @@ You are also able to request [phrase data (PSSI)](https://djl-analysis.deepsymme
   }
 ```
 
-_Disclaimer: I haven't verified if this is a complete PSSI file or not, I just saw the "PSSI" header in the hex dump._
-
 The trackId is the track ID (can be seen in the CDJ status packets). The deck numbers on the OPUS-QUAD are as follows: 9 is deck 1, 10 is deck 2, 11 is deck 3, 12 is deck 4 (also can be seen in the CDJ status packets).
 
 I also observed that rekordbox sends what appears to be [rekordbox status packets(?) on port 50002](https://djl-analysis.deepsymmetry.org/djl-analysis/vcdj.html#rekordbox-status-packets). However, the OPUS-QUAD still sends back metadata even if these packets are not sent.
@@ -127,26 +129,29 @@ Please see the [appendix](#appendix) for more information on CDJ statuses and me
 
 ### CDJ Statuses
 
-The following pieces of data are sent back to you on port 50002:
+When [`sendCdj()`](#3-cdj-status-packets-and-metadata) is ran, the OPUS-QUAD will start sending CDJ status packets on port 50002. Please refer to [CDJ Status packets on DJ Link Ecosystem Analysis](https://djl-analysis.deepsymmetry.org/djl-analysis/vcdj.html#cdj-status-packets). Note that not all values shown on the linked guide are reported back from the OPUS-QUAD.
 
-TODO, please see the [prolink-connect code](https://github.com/evanpurkhiser/prolink-connect/blob/8d0a96e3a40ec9a63691ed780868271410f7c857/src/status/utils.ts#L31-L47) in the meantime. Note that not all CDJ statuses are reported back from the OPUS-QUAD. The ids and deck numbers on the OPUS-QUAD are as follows: 9 is deck 1, 10 is deck 2, 11 is deck 3, 12 is deck 4.
+So far, I've observed the following not to be reported in the CDJ status packets. This includes, but not limited to:
+
+- USB slot number the track is loaded from
+- Looping status
+
+The deck numbers on the OPUS-QUAD are as follows: 9 is deck 1, 10 is deck 2, 11 is deck 3, 12 is deck 4.
+
+The OPUS-QUAD does not send high-precision position packets like the CDJ-3000 does. However the current beat number is included, and can be used to approximate a timecode with known beatgrid data. The [Beat Link Trigger software](#integration-with-beat-link-trigger) can achieve this.
 
 ### Metadata on song load
 
-On song load, the following data is sent back to you on port 50002:
+On song load, a low resolution album art is sent back, and two unknown types of data. It is sent on port 50002.
 
-- Album art
-- Waveform data?, what it looks like
-- Beatgrid data?, what it looks like
-
-These are sent with binary data. The binary packets' format seem to be all the same for all three (I only confirmed with the album art, however at quick glances of the supposed waveform and beatgrid data, they look the same). The format is as follows:
+These are sent with binary data. The binary packets' format seem to be all the same for all three (I only confirmed with the album art, however at quick glances of the two unknown types, they look the same). The format is as follows:
 
 `51 73 70 74 31 57 6d 4a 4f 4c 56` (Pro DJ Link header, then `56`, which may mean it's binary data?), then...
 
 | Offset | Description                                                                           |
 | ------ | ------------------------------------------------------------------------------------- |
 | 0x21   | Deck number: 9 is deck 1, 10 is deck 2, 11 is deck 3, 12 is deck 4                    |
-| 0x25   | Type of binary data: `02` for image, `06` for beatgrid data?, `04` for waveform data? |
+| 0x25   | Type of binary data: `02` for image, `06` is unknown, `04` is unknown                 |
 | 0x28   | Track ID (32-bit integer, big endian)                                                 |
 | 0x31   | Packet number/index (e.g. packet 0/2, 1/2, etc.)                                      |
 | 0x33   | Amount of packets needed to send the whole binary data                                |
@@ -156,4 +161,4 @@ From 0x34 to the end of the packet is the binary data.
 
 ### Phrase data
 
-Please refer to [phrase data (PSSI) on DJ Link Ecosystem Analysis](https://djl-analysis.deepsymmetry.org/rekordbox-export-analysis/anlz.html#song-structure-tag). _Disclaimer: I haven't verified if what is sent back is a complete PSSI file or not, I just saw the "PSSI" header in the hex dump._
+Please refer to [phrase data (PSSI) on DJ Link Ecosystem Analysis](https://djl-analysis.deepsymmetry.org/rekordbox-export-analysis/anlz.html#song-structure-tag).
