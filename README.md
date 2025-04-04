@@ -131,7 +131,7 @@ Please see the [appendix](#appendix) for more information on CDJ statuses and me
 
 When [`sendCdj()`](#3-cdj-status-packets-and-metadata) is ran, the OPUS-QUAD will start sending CDJ status packets on port 50002. Please refer to [CDJ Status packets on DJ Link Ecosystem Analysis](https://djl-analysis.deepsymmetry.org/djl-analysis/vcdj.html#cdj-status-packets). Note that not all values shown on the linked guide are reported back from the OPUS-QUAD.
 
-So far, I've observed the following not to be reported in the CDJ status packets. This includes, but not limited to:
+Based on testing so far, the following values do not appear to be included in the CDJ status packets (this list may not be exhaustive):
 
 - USB slot number the track is loaded from
 - Looping status
