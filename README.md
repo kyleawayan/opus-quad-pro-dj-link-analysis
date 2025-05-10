@@ -138,7 +138,7 @@ Based on testing so far, the following values do not appear to be included in th
 
 The deck numbers on the OPUS-QUAD are as follows: 9 is deck 1, 10 is deck 2, 11 is deck 3, 12 is deck 4.
 
-The OPUS-QUAD does not send high-precision position packets like the CDJ-3000 does. However the current beat number is included, and can be used to approximate a timecode with known beatgrid data. The [Beat Link Trigger software](#integration-with-beat-link-trigger) can achieve this.
+~~The OPUS-QUAD does not send high-precision position packets like the CDJ-3000 does. However the current beat number is included, and can be used to approximate a timecode with known beatgrid data. The [Beat Link Trigger software](#integration-with-beat-link-trigger) can achieve this.~~ **We have recently found out the OPUS-QUAD does send back high-precision/absolute position packets, when using a CDJ keep alive packet**. See this [Zulip message](https://deep-symmetry.zulipchat.com/#narrow/channel/275322-beat-link-trigger/topic/Ableton.20Link.3A.20Sync.20phase/near/516333211) for more details, as well as this [preview video demonstrating the high-precision position packets being implemented in a Beat Link Trigger development version](https://deep-symmetry.zulipchat.com/#narrow/channel/275322-beat-link-trigger/topic/Opus.20Quad.20Integration/near/516555078).
 
 ### Metadata on song load
 
