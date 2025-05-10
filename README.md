@@ -5,7 +5,7 @@ Some reverse engineering of the Pro DJ Link protocol from the Pioneer DJ OPUS-QU
 ## Integration with Beat Link Trigger
 
 > [!NOTE]  
-> **Beat Link Trigger is the best way to get started with interfacing with the OPUS-QUAD.**
+> # **[Beat Link Trigger](https://github.com/Deep-Symmetry/beat-link-trigger) is the best way to get started with interfacing with the OPUS-QUAD.**
 
 The OPUS-QUAD is now supported in [Beat Link Trigger](https://github.com/Deep-Symmetry/beat-link-trigger), a software that bridges Pioneer DJ equipment to lighting, video, and various other software. It is supported as of version 8.0.0. Some of the findings in this project were contributed to Beat Link Trigger.
 
@@ -41,6 +41,10 @@ The [Beat Link Trigger software](#integration-with-beat-link-trigger) is able to
 ## How it works
 
 Below I will explain what the script does and how it works.
+
+> [!WARNING]  
+> # Any rekordbox ID sent back from the OPUS-QUAD refers to the track ID in the <ins>Device Library Plus (encrypted SQLite)</ins> database. This ID is <ins>not compatible with the DeviceSQL database</ins> and will result in incorrect track metadata if used with it.
+> One implementation to match track metadata with the Device Library Plus database can be found in this [pull request](https://github.com/Deep-Symmetry/beat-link/pull/86).
 
 ### 1. Background
 
@@ -141,9 +145,14 @@ Based on testing so far, the following values do not appear to be included in th
 
 The deck numbers on the OPUS-QUAD are as follows: 9 is deck 1, 10 is deck 2, 11 is deck 3, 12 is deck 4.
 
+### Absolute Position Packets
+
 ~~The OPUS-QUAD does not send high-precision position packets like the CDJ-3000 does. However the current beat number is included, and can be used to approximate a timecode with known beatgrid data. The [Beat Link Trigger software](#integration-with-beat-link-trigger) can achieve this.~~ **It has been recently found that the OPUS-QUAD does send back high-precision/absolute position packets, when using a CDJ keep alive packet**. However in this mode, it looks like data in the ["Metadata on song load" section](#metadata-on-song-load) is not sent on song load, and the ability to request for [phrase data (PSSI)](#phrase-data) does not work. See this [Zulip message](https://deep-symmetry.zulipchat.com/#narrow/channel/275322-beat-link-trigger/topic/Ableton.20Link.3A.20Sync.20phase/near/516333211) for more details, as well as this [preview video demonstrating the high-precision position packets being implemented in a Beat Link Trigger development version](https://deep-symmetry.zulipchat.com/#narrow/channel/275322-beat-link-trigger/topic/Opus.20Quad.20Integration/near/516555078).
 
 ### Metadata on song load
+
+> [!NOTE]  
+> I have found that this packet is about one second delayed from when the song actually loads. It is better to track ID changes in the CDJ status packets, as this packet comes earlier.
 
 On song load, a low resolution album art is sent back, and two unknown types of data. It is sent on port 50002.
 
