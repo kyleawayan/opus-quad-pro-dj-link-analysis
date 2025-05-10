@@ -11,6 +11,9 @@ The OPUS-QUAD is now supported in [Beat Link Trigger](https://github.com/Deep-Sy
 
 To follow development or get involved, see the [ongoing thread in the Deep Symmetry Zulip](https://deep-symmetry.zulipchat.com/#narrow/stream/275322-beat-link-trigger/topic/Opus.20Quad.20Integration).
 
+> [!TIP]
+> The above link to the Zulip thread is the best place to get the latest findings about the OPUS-QUAD's capabilities with Pro DJ Link.
+
 ## Special Thanks
 
 - [DJ Link Ecosystem Analysis by Deep Symmetry](https://djl-analysis.deepsymmetry.org/djl-analysis/packets.html)
